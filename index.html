@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SU'rreal</title>
+<style>
+  /* ====== BURAYI DOLDUR ====== */
+  /* Linkler JS bölümünün en üstünde: VIDEO_URL ve NFT_URL */
+
+  @property --a { syntax: "<angle>"; initial-value: 0deg; inherits: false; }
+
+  :root {
+    --void: #120d1f;
+    --pearl: #f1ecf6;
+    --mist: #b9aecb;
+    --i1: #7cf0d6; --i2: #8aa4ff; --i3: #e58bff; --i4: #ffc38a;
+    --x: 50vw; --y: 40px;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { height: 100%; background: var(--void); color: var(--pearl); overflow: hidden;
+    font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; }
+
+  .layer { position: fixed; inset: 0; display: grid; place-items: center; }
+  .layer video, .layer img { width: 100%; height: 100%; object-fit: contain; display: block; }
+
+  /* Heykel videosu */
+  #sculpture { background: radial-gradient(ellipse at 50% 45%, #241a3a 0%, var(--void) 70%); }
+
+  /* NFT katmanı: butonun olduğu noktadan daire olarak açılır */
+  #nft {
+    z-index: 2;
+    background: radial-gradient(ellipse at 50% 50%, #1d1a33 0%, #0c0a16 75%);
+    clip-path: circle(0px at var(--x) var(--y));
+    transition: clip-path 1.3s cubic-bezier(.7, 0, .15, 1);
+    perspective: 1200px;
+  }
+  body.open #nft { clip-path: circle(160vmax at var(--x) var(--y)); }
+  #nft .frame { width: 100%; height: 100%; transition: transform .25s ease-out; will-change: transform; }
+  #nft::after { /* iridescent ışık, imleci takip eder */
+    content: ""; position: absolute; inset: 0; pointer-events: none; mix-blend-mode: screen; opacity: .35;
+    background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%),
+      rgba(138,164,255,.55), rgba(229,139,255,.25) 25%, transparent 55%);
+  }
+
+  /* Üstteki buton */
+  #toggle {
+    position: fixed; z-index: 10; top: max(18px, env(safe-area-inset-top, 0px)); left: 50%; transform: translateX(-50%);
+    padding: 13px 26px; border: 0; border-radius: 999px; cursor: pointer;
+    color: var(--pearl); background: rgba(18, 13, 31, .55); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    font: italic 500 17px/1 inherit; letter-spacing: .04em; isolation: isolate;
+    animation: spin 6s linear infinite;
+    transition: transform .3s ease, background .3s ease;
+  }
+  #toggle::before { /* dönen iridescent kenarlık */
+    content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1.5px; z-index: -1;
+    background: conic-gradient(from var(--a), var(--i1), var(--i2), var(--i3), var(--i4), var(--i1));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude;
+  }
+  #toggle::after { /* dış parıltı */
+    content: ""; position: absolute; inset: -6px; border-radius: inherit; z-index: -2; filter: blur(16px); opacity: .45;
+    background: conic-gradient(from var(--a), var(--i1), var(--i2), var(--i3), var(--i4), var(--i1));
+  }
+  #toggle:hover { transform: translateX(-50%) scale(1.05); background: rgba(18, 13, 31, .35); }
+  #toggle:focus-visible { outline: 2px solid var(--pearl); outline-offset: 4px; }
+  @keyframes spin { to { --a: 360deg; } }
+
+  /* Ses butonu + başlık */
+  #sound {
+    position: fixed; z-index: 10; left: 20px; bottom: max(20px, env(safe-area-inset-bottom, 0px));
+    background: none; border: 1px solid rgba(241,236,246,.35); color: var(--pearl); border-radius: 999px;
+    padding: 9px 16px; font: 15px/1 inherit; cursor: pointer; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    transition: opacity .4s ease, border-color .3s ease;
+  }
+  #sound:hover { border-color: var(--pearl); }
+  #sound:focus-visible { outline: 2px solid var(--pearl); outline-offset: 3px; }
+  body.open #sound { opacity: 0; pointer-events: none; }
+  #title {
+    position: fixed; z-index: 10; right: 22px; bottom: max(24px, env(safe-area-inset-bottom, 0px));
+    font-style: italic; color: var(--mist); font-size: 16px; letter-spacing: .06em;
+  }
+
+  .note { max-width: 32ch; text-align: center; color: var(--mist); line-height: 1.5; padding: 24px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    #toggle { animation: none; }
+    #nft { transition-duration: .01s; }
+  }
+</style>
+</head>
+<body>
+
+<main id="sculpture" class="layer" aria-label="Heykel videosu"></main>
+<section id="nft" class="layer" aria-label="NFT versiyonu"><div class="frame" id="nftFrame"></div></section>
+
+<button id="toggle" type="button" aria-expanded="false">For Crypto Art</button>
+<button id="sound" type="button" aria-pressed="false">Sesi aç</button>
+<div id="title">SU'rreal</div>
+
+<script>
+/* ============ LİNKLERİ BURAYA YAPIŞTIR ============ */
+const VIDEO_URL = "assets/colorfulghost.mp4";
+const NFT_URL   = "assets/colorfulghost.jpeg";      // index.html ile aynı yerdeki assets klasöründe
+/* ================================================== */
+
+const body = document.body;
+const toggle = document.getElementById("toggle");
+const sound = document.getElementById("sound");
+const nftFrame = document.getElementById("nftFrame");
+const sculpture = document.getElementById("sculpture");
+const isVideo = u => /\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(u);
+
+function build(url, hostEl, withControlsOff = true) {
+  if (!url || url.startsWith("PASTE_")) {
+    hostEl.innerHTML = '<p class="note">Bağlantı henüz eklenmedi. Dosyanın en üstündeki VIDEO_URL ve NFT_URL alanlarına linklerini yapıştır.</p>';
+    return null;
+  }
+  let el;
+  if (isVideo(url)) {
+    el = document.createElement("video");
+    el.src = url; el.autoplay = true; el.loop = true; el.muted = true; el.playsInline = true;
+    el.setAttribute("playsinline", ""); el.preload = "auto";
+  } else {
+    el = document.createElement("img");
+    el.src = url; el.alt = "SU'rreal NFT"; el.decoding = "async";
+  }
+  hostEl.appendChild(el);
+  return el;
+}
+
+const mainMedia = build(VIDEO_URL, sculpture);
+const nftMedia  = build(NFT_URL, nftFrame);
+
+/* Ses */
+if (!mainMedia || mainMedia.tagName !== "VIDEO") sound.hidden = true;
+sound.addEventListener("click", () => {
+  mainMedia.muted = !mainMedia.muted;
+  sound.textContent = mainMedia.muted ? "Sesi aç" : "Sesi kapat";
+  sound.setAttribute("aria-pressed", String(!mainMedia.muted));
+  mainMedia.play().catch(() => {});
+});
+
+/* Geçiş: daire, butonun olduğu noktadan açılır */
+function setOrigin() {
+  const r = toggle.getBoundingClientRect();
+  document.documentElement.style.setProperty("--x", (r.left + r.width / 2) + "px");
+  document.documentElement.style.setProperty("--y", (r.top + r.height / 2) + "px");
+}
+setOrigin();
+addEventListener("resize", setOrigin);
+
+toggle.addEventListener("click", () => {
+  setOrigin();
+  const open = !body.classList.contains("open");
+  body.classList.toggle("open", open);
+  toggle.setAttribute("aria-expanded", String(open));
+  toggle.textContent = open ? "Back to Sculpture" : "For Crypto Art";
+  if (mainMedia && mainMedia.tagName === "VIDEO") {
+    if (open) setTimeout(() => body.classList.contains("open") && mainMedia.pause(), 1300);
+    else mainMedia.play().catch(() => {});
+  }
+  if (nftMedia && nftMedia.tagName === "VIDEO") { open ? nftMedia.play().catch(() => {}) : setTimeout(() => nftMedia.pause(), 1300); }
+});
+addEventListener("keydown", e => { if (e.key === "Escape" && body.classList.contains("open")) toggle.click(); });
+
+/* NFT üzerinde hafif 3D eğilme + ışık */
+const nft = document.getElementById("nft");
+const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+nft.addEventListener("pointermove", e => {
+  const px = e.clientX / innerWidth, py = e.clientY / innerHeight;
+  nft.style.setProperty("--mx", (px * 100) + "%");
+  nft.style.setProperty("--my", (py * 100) + "%");
+  if (!still) nftFrame.style.transform = `rotateY(${(px - .5) * 8}deg) rotateX(${(.5 - py) * 6}deg)`;
+});
+nft.addEventListener("pointerleave", () => { nftFrame.style.transform = ""; });
+</script>
+</body>
+</html>
