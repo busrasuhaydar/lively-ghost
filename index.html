@@ -8,7 +8,7 @@
   @property --a { syntax: "<angle>"; initial-value: 0deg; inherits: false; }
 
   :root {
-    --void: #120d1f; --pearl: #f1ecf6; --mist: #b9aecb;
+    --void: #000; --pearl: #f1ecf6; --mist: #b9aecb;
     --i1: #7cf0d6; --i2: #8aa4ff; --i3: #e58bff; --i4: #ffc38a;
     --x: 50vw; --y: 30px;
   }
@@ -20,28 +20,26 @@
   .layer { position: fixed; inset: 0; height: 100vh; height: 100dvh; overflow: hidden; }
   .layer video, .layer img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; display: block; }
 
-  #sculpture { background: radial-gradient(ellipse at 50% 45%, #241a3a 0%, var(--void) 70%); }
+  #sculpture { background: transparent; }
+  .stars { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
 
   #nft {
     z-index: 2;
-    background: radial-gradient(ellipse at 50% 50%, #1d1a33 0%, #0c0a16 75%);
+    background: #000;
     clip-path: circle(0px at var(--x) var(--y));
     transition: clip-path 1.3s cubic-bezier(.7, 0, .15, 1);
     perspective: 1200px;
   }
   body.open #nft { clip-path: circle(160vmax at var(--x) var(--y)); }
   #nft .frame { position: absolute; inset: 0; transition: transform .25s ease-out; will-change: transform; }
-  #nft::after {
-    content: ""; position: absolute; inset: 0; pointer-events: none; mix-blend-mode: screen; opacity: .35;
-    background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%),
-      rgba(138,164,255,.55), rgba(229,139,255,.25) 25%, transparent 55%);
-  }
 
   /* Üstteki küçük dock: [◆ For Crypto Art | ⌃] */
   #dock {
     position: fixed; z-index: 10; top: calc(env(safe-area-inset-top, 0px) + 12px); left: 50%;
     transform: translate(-50%, 0); display: flex; align-items: stretch; height: 34px; border-radius: 999px;
-    background: rgba(18, 13, 31, .5); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    background: linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.02)), rgba(14, 10, 26, .62);
+    backdrop-filter: blur(16px) saturate(1.4); -webkit-backdrop-filter: blur(16px) saturate(1.4);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.22), 0 8px 28px rgba(0,0,0,.55);
     isolation: isolate; animation: spin 8s linear infinite;
     transition: transform .45s cubic-bezier(.6, 0, .2, 1), opacity .3s ease;
   }
@@ -52,7 +50,7 @@
     -webkit-mask-composite: xor; mask-composite: exclude;
   }
   #dock::after { /* hafif parıltı */
-    content: ""; position: absolute; inset: -4px; border-radius: inherit; z-index: -2; filter: blur(12px); opacity: .28;
+    content: ""; position: absolute; inset: -4px; border-radius: inherit; z-index: -2; filter: blur(14px); opacity: .4;
     background: conic-gradient(from var(--a), var(--i1), var(--i2), var(--i3), var(--i4), var(--i1));
   }
   body.tucked #dock { transform: translate(-50%, -160%); opacity: 0; visibility: hidden;
@@ -61,11 +59,19 @@
   #dock button, #handle { border: 0; background: none; color: var(--pearl); cursor: pointer; display: flex; align-items: center; justify-content: center; }
   #dock button:focus-visible, #handle:focus-visible { outline: 2px solid var(--pearl); outline-offset: 2px; }
   #toggle {
-    gap: 8px; padding: 0 14px 0 15px; border-radius: 999px 0 0 999px;
+    position: relative; overflow: hidden; gap: 8px; padding: 0 15px 0 16px; border-radius: 999px 0 0 999px;
     font-family: inherit; font-style: italic; font-weight: 500; font-size: 14px; letter-spacing: .04em; white-space: nowrap;
     transition: background .25s ease;
   }
-  #toggle:hover { background: rgba(255,255,255,.07); }
+  #toggle:hover { background: rgba(255,255,255,.08); }
+  #toggle::after { /* süzülen ışık */
+    content: ""; position: absolute; top: 0; bottom: 0; left: -60%; width: 40%; pointer-events: none;
+    background: linear-gradient(100deg, transparent, rgba(255,255,255,.32), transparent);
+    transform: skewX(-20deg); animation: sheen 5s ease-in-out infinite;
+  }
+  .gem { animation: gem 3.4s ease-in-out infinite; filter: drop-shadow(0 0 3px rgba(138,164,255,.55)); }
+  @keyframes sheen { 0%, 62% { left: -60%; } 100% { left: 130%; } }
+  @keyframes gem { 0%, 100% { transform: scaleX(1); } 50% { transform: scaleX(.5); } }
   #tuck { width: 30px; border-left: 1px solid rgba(241,236,246,.16) !important; border-radius: 0 999px 999px 0; color: var(--mist); transition: color .2s, background .25s; }
   #tuck:hover { color: var(--pearl); background: rgba(255,255,255,.07); }
   #dock svg, #handle svg { display: block; }
@@ -80,6 +86,11 @@
   body.tucked #handle { visibility: visible; opacity: .8; transition: opacity .3s ease .35s, visibility 0s .35s; }
   body.tucked #handle:hover { opacity: 1; color: var(--pearl); }
 
+  html.ghostcursor, html.ghostcursor * { cursor: none !important; }
+  #ghost { position: fixed; z-index: 100; left: 0; top: 0; width: 30px; height: 34px; pointer-events: none; opacity: 0;
+    transition: opacity .25s ease; will-change: transform; filter: drop-shadow(0 2px 3px rgba(0,0,0,.45)); }
+  #ghost svg { display: block; width: 100%; height: 100%; }
+
   .note { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: min(32ch, 90%);
     text-align: center; color: var(--mist); line-height: 1.5; }
 
@@ -88,18 +99,18 @@
     #dock { height: 40px; } #toggle { font-size: 15px; } #tuck { width: 38px; } #handle { width: 52px; height: 24px; }
   }
   @media (prefers-reduced-motion: reduce) {
-    #dock { animation: none; } #nft { transition-duration: .01s; }
+    #dock, #toggle::after, .gem { animation: none; } #nft { transition-duration: .01s; }
   }
 </style>
 </head>
 <body>
 
-<main id="sculpture" class="layer" aria-label="Sculpture video"></main>
-<section id="nft" class="layer" aria-label="NFT version"><div class="frame" id="nftFrame"></div></section>
+<main id="sculpture" class="layer" aria-label="Sculpture video"><canvas class="stars" aria-hidden="true"></canvas></main>
+<section id="nft" class="layer" aria-label="NFT version"><canvas class="stars" aria-hidden="true"></canvas><div class="frame" id="nftFrame"></div></section>
 
 <div id="dock">
   <button id="toggle" type="button" aria-expanded="false">
-    <svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true">
+    <svg class="gem" width="13" height="13" viewBox="0 0 16 16" aria-hidden="true">
       <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
         <stop offset="0" stop-color="#7cf0d6"/><stop offset=".5" stop-color="#8aa4ff"/><stop offset="1" stop-color="#e58bff"/>
       </linearGradient></defs>
@@ -114,6 +125,18 @@
 <button id="handle" type="button" aria-label="Show button">
   <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
 </button>
+
+<div id="ghost" aria-hidden="true">
+  <svg viewBox="0 0 32 36">
+    <defs><linearGradient id="gg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#b8fff0"/><stop offset=".55" stop-color="#a9baff"/><stop offset="1" stop-color="#f0b3ff"/>
+    </linearGradient></defs>
+    <path d="M4 33V15C4 7.8 9.4 2 16 2s12 5.8 12 13v18l-4-3.6-4 3.6-4-3.6-4 3.6-4-3.6z" fill="url(#gg)" stroke="#f1ecf6" stroke-width="1.2" stroke-linejoin="round"/>
+    <ellipse cx="11.8" cy="14" rx="1.9" ry="2.7" fill="#1b1430"/>
+    <ellipse cx="20.2" cy="14" rx="1.9" ry="2.7" fill="#1b1430"/>
+    <ellipse cx="16" cy="20.5" rx="1.7" ry="2.1" fill="#1b1430" opacity=".8"/>
+  </svg>
+</div>
 
 <script>
 const VIDEO_URL = "assets/colorfulghost.mp4";
@@ -141,7 +164,7 @@ function build(url, host, sound) {
     el = document.createElement("img");
     el.src = url; el.alt = "NFT"; el.decoding = "async";
   }
-  el.addEventListener("error", () => { host.innerHTML = '<p class="note">Could not load: ' + url + '</p>'; });
+  el.addEventListener("error", () => { el.remove(); host.insertAdjacentHTML("beforeend", '<p class="note">Could not load: ' + url + '</p>'); });
   host.appendChild(el);
   return el;
 }
@@ -199,11 +222,82 @@ handle.addEventListener("click", () => { body.classList.remove("tucked"); setOri
 const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
 nft.addEventListener("pointermove", e => {
   const px = e.clientX / innerWidth, py = e.clientY / innerHeight;
-  nft.style.setProperty("--mx", (px * 100) + "%");
-  nft.style.setProperty("--my", (py * 100) + "%");
   if (!still) nftFrame.style.transform = `rotateY(${(px - .5) * 8}deg) rotateX(${(.5 - py) * 6}deg)`;
 });
 nft.addEventListener("pointerleave", () => { nftFrame.style.transform = ""; });
+
+/* Yıldızlı arka plan: iki katmana da aynı yıldızlar çizilir */
+const cvs = [...document.querySelectorAll(".stars")];
+const ctxs = cvs.map(c => c.getContext("2d"));
+let W = 0, H = 0, stars = [], shoot = null, nextShoot = 4, prev = 0;
+const tints = ["#ffffff", "#cfe0ff", "#ffe6f7", "#d9fff5"];
+function makeStars() {
+  const n = Math.max(120, Math.min(420, Math.round(W * H / 5500)));
+  stars = Array.from({ length: n }, () => {
+    const z = Math.random() ** 2;
+    return { x: Math.random() * W, y: Math.random() * H, z, r: .35 + z * 1.5, v: 3 + z * 16,
+      ph: Math.random() * 6.28, f: .6 + Math.random() * 1.6, c: tints[Math.floor(Math.random() * 4)] };
+  });
+}
+function resize() {
+  const oW = W, oH = H, dpr = Math.min(devicePixelRatio || 1, 2);
+  W = innerWidth; H = innerHeight;
+  cvs.forEach(c => { c.width = W * dpr; c.height = H * dpr; });
+  ctxs.forEach(g => g.setTransform(dpr, 0, 0, dpr, 0, 0));
+  if (!stars.length) makeStars(); else stars.forEach(s => { s.x *= W / oW; s.y *= H / oH; });
+}
+function frame(t) {
+  const dt = Math.min((t - prev) / 1000, .1); prev = t;
+  ctxs.forEach(g => g.clearRect(0, 0, W, H));
+  for (const s of stars) {
+    if (!still) { s.x -= s.v * dt; s.y += s.v * .25 * dt; if (s.x < -2) s.x = W + 2; if (s.y > H + 2) s.y = -2; }
+    const a = (still ? .8 : .55 + .45 * Math.sin(t / 1000 * s.f + s.ph)) * (.5 + s.z * .5);
+    ctxs.forEach(g => { g.globalAlpha = a; g.fillStyle = s.c; g.beginPath(); g.arc(s.x, s.y, s.r, 0, 6.283); g.fill(); });
+  }
+  if (!still) { /* ara sıra kayan yıldız */
+    if (!shoot && t / 1000 > nextShoot) { shoot = { x: W * .4 + Math.random() * W * .6, y: Math.random() * H * .35, life: 0 }; nextShoot = t / 1000 + 6 + Math.random() * 8; }
+    if (shoot) {
+      shoot.life += dt; const p = shoot.life / .9;
+      if (p >= 1) shoot = null;
+      else {
+        const x = shoot.x - p * 260, y = shoot.y + p * 143, tx = x + 90, ty = y - 50;
+        ctxs.forEach(g => {
+          const gr = g.createLinearGradient(x, y, tx, ty);
+          gr.addColorStop(0, "rgba(255,255,255," + (.9 * (1 - p)) + ")"); gr.addColorStop(1, "rgba(255,255,255,0)");
+          g.globalAlpha = 1; g.strokeStyle = gr; g.lineWidth = 1.4; g.lineCap = "round";
+          g.beginPath(); g.moveTo(x, y); g.lineTo(tx, ty); g.stroke();
+        });
+      }
+    }
+  }
+  requestAnimationFrame(frame);
+}
+resize(); addEventListener("resize", resize); requestAnimationFrame(frame);
+
+/* Hayalet imleç */
+const ghost = document.getElementById("ghost");
+if (matchMedia("(hover: hover) and (pointer: fine)").matches) {
+  let tx = 0, ty = 0, gx = 0, gy = 0, seen = false, over = false, down = false;
+  addEventListener("pointermove", e => {
+    if (e.pointerType === "touch") return;
+    tx = e.clientX; ty = e.clientY;
+    if (!seen) { seen = true; gx = tx; gy = ty; document.documentElement.classList.add("ghostcursor"); }
+    ghost.style.opacity = 1;
+    over = !!(e.target.closest && e.target.closest("button"));
+  });
+  document.documentElement.addEventListener("mouseleave", () => { ghost.style.opacity = 0; });
+  addEventListener("pointerdown", () => { down = true; });
+  addEventListener("pointerup", () => { down = false; });
+  (function follow(t) {
+    const dx = tx - gx, dy = ty - gy;
+    gx += dx * .45; gy += dy * .45;
+    const tilt = Math.max(-28, Math.min(28, dx * 1.2));
+    const bob = still ? 0 : Math.sin(t / 380) * 2.2;
+    const sc = down ? .85 : over ? 1.25 : 1;
+    ghost.style.transform = `translate(${gx}px, ${gy + bob}px) translate(-50%, -50%) rotate(${tilt}deg) scale(${sc})`;
+    requestAnimationFrame(follow);
+  })(0);
+}
 </script>
 </body>
 </html>
